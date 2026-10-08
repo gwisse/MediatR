@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>true</IsPackable>
+        <PackageId>MediatR</PackageId>
+        <Authors>Geraldo</Authors>
+        <Description>In-process request mediator with handlers and pipeline behaviors for .NET.</Description>
+        <PackageTags>mediator;request;handler;pipeline;CQRS</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\MediatR.Abstractions\MediatR.Abstractions.csproj" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\README.md" Pack="true" PackagePath="\" />
+      <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+        <_Parameter1>MediatR.Tests</_Parameter1>
+      </AssemblyAttribute>
+    </ItemGroup>
+
+</Project>

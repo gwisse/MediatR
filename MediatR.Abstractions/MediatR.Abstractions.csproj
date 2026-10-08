@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <IsPackable>true</IsPackable>
+        <PackageId>MediatR.Abstractions</PackageId>
+        <Authors>Geraldo</Authors>
+        <Description>Contracts for MediatR requests, handlers, pipeline behaviors, and mediator dispatching.</Description>
+        <PackageTags>mediator;abstractions;request;handler;pipeline;CQRS</PackageTags>
+    </PropertyGroup>
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+</Project>
