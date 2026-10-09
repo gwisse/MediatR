@@ -131,7 +131,7 @@ services.AddMediatR(cfg =>
 {
     cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
     cfg.AddBehavior(typeof(LoggingBehavior<,>));
-    cfg.AddFluentValidation(typeof(CreateOrderValidator).Assembly);
+    cfg.AddFluentValidationBehaviour(typeof(CreateOrderValidator).Assembly);
 });
 ```
 
