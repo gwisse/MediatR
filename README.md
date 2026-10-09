@@ -106,7 +106,11 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
 }
 ```
 
-When an assembly is scanned, concrete request handlers and both open-generic and closed pipeline behaviors are registered automatically.
+`AddMediator` scans assemblies for request handlers only. Register pipeline behaviors explicitly with dependency injection, which also determines their lifetime and order:
+
+```csharp
+services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+```
 
 ## FluentValidation integration
 

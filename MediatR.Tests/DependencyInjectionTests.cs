@@ -108,7 +108,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_RegistersOpenGenericBehavior_BehaviorCanBeResolved()
+    public async Task AddMediator_DoesNotRegisterPipelineBehaviorsFromAssembly()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -124,30 +124,32 @@ public class DependencyInjectionTests
             IPipelineBehavior<TestRequest, string>>();
 
         // Assert
+        behaviors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AddMediator_ResolvesPipelineBehaviorRegisteredWithDependencyInjection()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        services.AddMediator(
+            typeof(DependencyInjectionTests).Assembly);
+        services.AddTransient(
+            typeof(IPipelineBehavior<,>),
+            typeof(TestBehavior<,>));
+
+        await using var provider =
+            services.BuildServiceProvider();
+
+        var behaviors = provider.GetServices<
+            IPipelineBehavior<TestRequest, string>>();
+
         behaviors.Should()
             .ContainSingle()
             .Which
             .Should()
             .BeOfType<TestBehavior<TestRequest, string>>();
-    }
-
-    [Fact]
-    public void AddMediator_RegistersOpenGenericBehaviorAsTransient()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-
-        // Act
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
-
-        // Assert
-        var descriptor = services.Single(x =>
-            x.ServiceType ==
-            typeof(IPipelineBehavior<,>));
-
-        descriptor.Lifetime
-            .Should().Be(ServiceLifetime.Transient);
     }
 
     [Fact]

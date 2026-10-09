@@ -7,15 +7,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace MediatR.DependencyInjection;
 
 /// <summary>
-/// Registers MediatR handlers and pipeline behaviors with the dependency injection container.
+/// Registers MediatR handlers with the dependency injection container.
 /// </summary>
 public static class MediatorServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds MediatR services and registers all request handlers and pipeline behaviors found in the specified assemblies.
+    /// Adds MediatR services and registers all request handlers found in the specified assemblies.
     /// </summary>
     /// <param name="services">The service collection to register services into.</param>
-    /// <param name="assemblies">The assemblies to scan for handlers and behaviors.</param>
+    /// <param name="assemblies">The assemblies to scan for request handlers.</param>
     /// <returns>The same service collection instance so additional registrations can be chained.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">Thrown when no assemblies are specified.</exception>
@@ -35,7 +35,6 @@ public static class MediatorServiceCollectionExtensions
         foreach (var assembly in assemblies.Distinct())
         {
             services.RegisterHandlers(assembly, executorCache);
-            services.RegisterPipelineBehaviors(assembly);
         }
 
         return services;
