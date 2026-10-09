@@ -83,7 +83,30 @@ public sealed class ValidationBehaviorTests
         tracker.InvocationCount.Should().Be(1);
     }
 
+    [Fact]
+    public async Task Handle_RunsValidatorsInParallelWithSeparateContexts()
+    {
+        var tracker = new ValidatorConcurrencyTracker();
+        var behavior = new ValidationBehavior<ConcurrentRequest, string>(
+        [
+            new FirstConcurrentValidator(tracker),
+            new SecondConcurrentValidator(tracker)
+        ]);
+
+        var response = await behavior.Handle(
+            new ConcurrentRequest("valid"),
+            () => Task.FromResult("handled"),
+            CancellationToken.None);
+
+        response.Should().Be("handled");
+        tracker.MaximumConcurrentValidations.Should().Be(2);
+        tracker.Contexts.Should().HaveCount(2);
+        tracker.Contexts[0].Should().NotBeSameAs(tracker.Contexts[1]);
+    }
+
     public sealed record ValidatedRequest(string Value) : IRequest<string>;
+
+    public sealed record ConcurrentRequest(string Value) : IRequest<string>;
 
     public sealed class BeforeValidationBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>
@@ -123,8 +146,67 @@ public sealed class ValidationBehaviorTests
         }
     }
 
+    private sealed class FirstConcurrentValidator : AbstractValidator<ConcurrentRequest>
+    {
+        public FirstConcurrentValidator(ValidatorConcurrencyTracker tracker)
+        {
+            RuleFor(request => request.Value).CustomAsync(
+                (request, context, cancellationToken) =>
+                    tracker.ValidateAsync(context, cancellationToken));
+        }
+    }
+
+    private sealed class SecondConcurrentValidator : AbstractValidator<ConcurrentRequest>
+    {
+        public SecondConcurrentValidator(ValidatorConcurrencyTracker tracker)
+        {
+            RuleFor(request => request.Value).CustomAsync(
+                (request, context, cancellationToken) =>
+                    tracker.ValidateAsync(context, cancellationToken));
+        }
+    }
+
     public sealed class ValidationHandlerTracker
     {
         public int InvocationCount { get; set; }
+    }
+
+    public sealed class ValidatorConcurrencyTracker
+    {
+        private int _activeValidations;
+        private int _maximumConcurrentValidations;
+        private readonly System.Collections.Concurrent.ConcurrentBag<object> _contexts = [];
+
+        public int MaximumConcurrentValidations => _maximumConcurrentValidations;
+        public object[] Contexts => _contexts.ToArray();
+
+        public async Task ValidateAsync(object context, CancellationToken cancellationToken)
+        {
+            _contexts.Add(context);
+            var active = Interlocked.Increment(ref _activeValidations);
+            UpdateMaximum(active);
+
+            try
+            {
+                await Task.Delay(20, cancellationToken);
+            }
+            finally
+            {
+                Interlocked.Decrement(ref _activeValidations);
+            }
+        }
+
+        private void UpdateMaximum(int active)
+        {
+            while (true)
+            {
+                var currentMaximum = _maximumConcurrentValidations;
+                if (active <= currentMaximum ||
+                    Interlocked.CompareExchange(ref _maximumConcurrentValidations, active, currentMaximum) == currentMaximum)
+                {
+                    return;
+                }
+            }
+        }
     }
 }

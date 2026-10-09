@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using MediatR.Abstractions;
 
 namespace MediatR.Extensions.FluentValidation;
@@ -24,8 +25,8 @@ public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<
     /// <inheritdoc />
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
-        var context = new ValidationContext<TRequest>(request);
-        var results = await Task.WhenAll( _validators.Select(validator => validator.ValidateAsync(context, cancellationToken)));
+        var results = await Task.WhenAll(_validators.Select(validator =>
+            validator.ValidateAsync(new ValidationContext<TRequest>(request), cancellationToken)));
 
         var failures = results
             .SelectMany(result => result.Errors)
