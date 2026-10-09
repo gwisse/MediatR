@@ -104,6 +104,51 @@ public sealed class ValidationBehaviorTests
         tracker.Contexts[0].Should().NotBeSameAs(tracker.Contexts[1]);
     }
 
+    [Fact]
+    public async Task Handle_AggregatesFailuresFromMultipleValidators()
+    {
+        var behavior = new ValidationBehavior<ValidatedRequest, string>(
+        [
+            new FirstFailingValidator(),
+            new SecondFailingValidator()
+        ]);
+
+        var act = () => behavior.Handle(
+            new ValidatedRequest("invalid"),
+            () => Task.FromResult("should not execute"),
+            CancellationToken.None);
+
+        var exception = await act.Should().ThrowAsync<ValidationException>();
+        exception.Which.Errors
+            .Select(failure => failure.ErrorMessage)
+            .Should()
+            .BeEquivalentTo("First validation failed", "Second validation failed");
+    }
+
+    [Fact]
+    public async Task Handle_CancellationDuringValidation_PropagatesCancellationAndSkipsHandler()
+    {
+        var behavior = new ValidationBehavior<ConcurrentRequest, string>(
+        [
+            new CancellationValidator()
+        ]);
+        using var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel();
+        var handlerExecuted = false;
+
+        var act = () => behavior.Handle(
+            new ConcurrentRequest("valid"),
+            () =>
+            {
+                handlerExecuted = true;
+                return Task.FromResult("handled");
+            },
+            cancellationTokenSource.Token);
+
+        await act.Should().ThrowAsync<OperationCanceledException>();
+        handlerExecuted.Should().BeFalse();
+    }
+
     public sealed record ValidatedRequest(string Value) : IRequest<string>;
 
     public sealed record ConcurrentRequest(string Value) : IRequest<string>;
@@ -143,6 +188,36 @@ public sealed class ValidationBehaviorTests
         public ValidatedRequestValidator()
         {
             RuleFor(request => request.Value).NotEmpty();
+        }
+    }
+
+    private sealed class FirstFailingValidator : AbstractValidator<ValidatedRequest>
+    {
+        public FirstFailingValidator()
+        {
+            RuleFor(request => request.Value)
+                .Must(_ => false)
+                .WithMessage("First validation failed");
+        }
+    }
+
+    private sealed class SecondFailingValidator : AbstractValidator<ValidatedRequest>
+    {
+        public SecondFailingValidator()
+        {
+            RuleFor(request => request.Value)
+                .Must(_ => false)
+                .WithMessage("Second validation failed");
+        }
+    }
+
+    private sealed class CancellationValidator : AbstractValidator<ConcurrentRequest>
+    {
+        public CancellationValidator()
+        {
+            RuleFor(request => request.Value)
+                .MustAsync((_, cancellationToken) =>
+                    Task.FromCanceled<bool>(cancellationToken));
         }
     }
 

@@ -1,4 +1,5 @@
 using FluentAssertions;
+using System.Reflection;
 using MediatR.Abstractions;
 using MediatR.Core;
 using MediatR.DependencyInjection;
@@ -232,6 +233,30 @@ public class DependencyInjectionTests
     }
 
     [Fact]
+    public void AddMediatR_WithPartiallyLoadableAssembly_FailsFastWithLoaderErrors()
+    {
+        var services = new ServiceCollection();
+        var loaderException = new TypeLoadException("Missing dependency");
+        var assembly = new PartiallyLoadableAssembly(
+            new ReflectionTypeLoadException([], [loaderException]));
+
+        var act = () => services.AddMediatR(configuration =>
+            configuration.RegisterRequestHandlersFromAssembly(assembly));
+
+        var exception = act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("*PartiallyLoadableAssembly*")
+            .Which;
+
+        exception.InnerException.Should()
+            .BeOfType<AggregateException>()
+            .Which.InnerExceptions.Should()
+            .ContainSingle()
+            .Which.Should()
+            .BeSameAs(loaderException);
+    }
+
+    [Fact]
     public async Task AddMediatR_WithDuplicateAssembly_DoesNotDuplicateHandlers()
     {
         // Arrange
@@ -306,5 +331,13 @@ public class DependencyInjectionTests
         {
             return next();
         }
+    }
+
+    private sealed class PartiallyLoadableAssembly(
+        ReflectionTypeLoadException exception) : Assembly
+    {
+        public override string FullName => "PartiallyLoadableAssembly";
+
+        public override Type[] GetTypes() => throw exception;
     }
 }
