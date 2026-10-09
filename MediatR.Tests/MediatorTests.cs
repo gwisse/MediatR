@@ -1,6 +1,7 @@
 using FluentAssertions;
 using MediatR.Abstractions;
 using MediatR.Core;
+using MediatR.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatR.Tests;
@@ -97,6 +98,28 @@ public class MediatorTests
         await act.Should()
             .ThrowAsync<InvalidOperationException>()
             .WithMessage("*No handler registered*");
+    }
+
+    [Fact]
+    public void AddMediatR_WithMultipleHandlers_ThrowsDuringRegistration()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        // Act
+        var act = () => services.AddMediatR(configuration =>
+        {
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(DependencyInjectionTests).Assembly);
+            configuration.Services.AddScoped<
+                IRequestHandler<TestRequest, string>>(
+                _ => new TestRequestHandler());
+        });
+
+        // Assert
+        act.Should()
+            .Throw<InvalidOperationException>()
+            .WithMessage("*Multiple handlers are registered*TestRequest*");
     }
 
     [Fact]

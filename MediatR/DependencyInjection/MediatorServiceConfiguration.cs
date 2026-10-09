@@ -106,5 +106,34 @@ public sealed class MediatorServiceConfiguration
         {
             _services.RegisterHandlers(assembly, executorCache);
         }
+
+        ValidateNoDuplicateHandlerRegistrations();
+    }
+
+    private void ValidateNoDuplicateHandlerRegistrations()
+    {
+        var duplicateRegistration = _services
+            .Where(descriptor => IsRequestHandlerService(descriptor.ServiceType))
+            .GroupBy(descriptor => descriptor.ServiceType)
+            .FirstOrDefault(group => group.Count() > 1);
+
+        if (duplicateRegistration is null)
+        {
+            return;
+        }
+
+        var handlerTypes = string.Join(
+            ", ",
+            duplicateRegistration.Select(descriptor =>
+                descriptor.ImplementationType?.FullName ?? "factory or instance"));
+
+        throw new InvalidOperationException(
+            $"Multiple handlers are registered for '{duplicateRegistration.Key}': {handlerTypes}.");
+    }
+
+    private static bool IsRequestHandlerService(Type serviceType)
+    {
+        return serviceType.IsGenericType &&
+            serviceType.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
     }
 }
