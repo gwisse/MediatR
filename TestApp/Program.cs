@@ -9,11 +9,11 @@ services.AddMediatR(cfg =>
 {
     cfg.RegisterRequestHandlersFromAssembly(typeof(Program).Assembly);
     cfg.AddBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddFluentValidationBehaviour(typeof(Program).Assembly);
 });
-services.AddMediatRFluentValidation(typeof(Program).Assembly);
 
 await using var serviceProvider = services.BuildServiceProvider();
 await using var scope = serviceProvider.CreateAsyncScope();
 
 var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-var response = await mediator.Send(new GreetingRequest("MediatR"));
+var response = await mediator.Send(new GreetingRequest("Mediator"));

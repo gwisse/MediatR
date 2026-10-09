@@ -125,14 +125,17 @@ services.AddMediatR(cfg =>
 Validation is provided as an optional integration package so applications that do not use FluentValidation do not take a dependency on it. Add the `MediatR.Extensions.FluentValidation` package alongside `MediatR`, then register the integration and validators:
 
 ```csharp
-using FluentValidation;
 using MediatR.Extensions.FluentValidation;
 
-services.AddMediatRFluentValidation(
-    typeof(CreateOrderValidator).Assembly);
+services.AddMediatR(cfg =>
+{
+    cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
+    cfg.AddBehavior(typeof(LoggingBehavior<,>));
+    cfg.AddFluentValidation(typeof(CreateOrderValidator).Assembly);
+});
 ```
 
-The behavior runs all registered validators before the request handler. If validation fails, it throws FluentValidation's `ValidationException` and the handler is not invoked:
+`AddFluentValidation` adds the validation behavior at its position in the configuration, so you control its order relative to other behaviors. It also scans the supplied assemblies for validators. The behavior runs all registered validators before the request handler. If validation fails, it throws FluentValidation's `ValidationException` and the handler is not invoked:
 
 ```csharp
 public sealed class CreateOrderValidator

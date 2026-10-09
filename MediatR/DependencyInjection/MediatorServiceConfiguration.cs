@@ -9,15 +9,20 @@ namespace MediatR.DependencyInjection;
 /// <summary>
 /// Configures MediatR handler assembly scanning and pipeline behavior registrations.
 /// </summary>
-public sealed class MediatRServiceConfiguration
+public sealed class MediatorServiceConfiguration
 {
     private readonly IServiceCollection _services;
     private readonly List<Assembly> _assemblies = [];
 
-    internal MediatRServiceConfiguration(IServiceCollection services)
+    internal MediatorServiceConfiguration(IServiceCollection services)
     {
         _services = services;
     }
+
+    /// <summary>
+    /// Gets the service collection being configured.
+    /// </summary>
+    public IServiceCollection Services => _services;
 
     /// <summary>
     /// Adds an assembly to scan for request handlers.

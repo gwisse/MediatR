@@ -16,12 +16,12 @@ public static class MediatorServiceCollectionExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> or <paramref name="configure"/> is <see langword="null"/>.</exception>
     public static IServiceCollection AddMediatR(
         this IServiceCollection services,
-        Action<MediatRServiceConfiguration> configure)
+        Action<MediatorServiceConfiguration> configure)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
 
-        var configuration = new MediatRServiceConfiguration(services);
+        var configuration = new MediatorServiceConfiguration(services);
         configure(configuration);
         configuration.RegisterServices();
 
