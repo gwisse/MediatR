@@ -42,20 +42,6 @@ internal static class ServiceCollectionExtensions
         }
         catch (ReflectionTypeLoadException ex)
         {
-            return ex.Types.Where(type => type is not null).Cast<Type>();
-        }
-    }
-
-    //TODO: GetLoadableTypes hides reflection exceptions, which may lead to unexpected behavior. Consider the method below.
-    /*
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
             var loaderExceptions = ex.LoaderExceptions
                 .Where(static exception => exception is not null)
                 .Cast<Exception>();
@@ -65,5 +51,4 @@ internal static class ServiceCollectionExtensions
                 new AggregateException(loaderExceptions));
         }
     }
-     */
 }
