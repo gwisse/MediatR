@@ -45,7 +45,10 @@ using MediatR.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
 var services = new ServiceCollection();
-services.AddMediator(typeof(CreateOrderHandler).Assembly);
+services.AddMediatR(cfg =>
+{
+    cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
+});
 ```
 
 ## Usage
@@ -92,7 +95,8 @@ Pipeline behaviors wrap request handler execution. They implement `IPipelineBeha
 ```csharp
 using MediatR.Abstractions;
 
-public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
@@ -106,10 +110,14 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
 }
 ```
 
-`AddMediator` scans assemblies for request handlers only. Register pipeline behaviors explicitly with dependency injection, which also determines their lifetime and order:
+`AddMediatR` scans assemblies for request handlers only. Add pipeline behaviors explicitly to the configuration; behavior registrations are transient by default, and their order follows the configuration order. `RegisterRequestHandlersFromAssembly` is required because it tells MediatR where to find request handlers:
 
 ```csharp
-services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
+services.AddMediatR(cfg =>
+{
+    cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
+    cfg.AddBehavior(typeof(LoggingBehavior<,>));
+});
 ```
 
 ## FluentValidation integration

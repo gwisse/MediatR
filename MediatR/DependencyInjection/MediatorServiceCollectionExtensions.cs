@@ -1,7 +1,3 @@
-using System.Reflection;
-using MediatR.Abstractions;
-using MediatR.Core;
-using MediatR.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatR.DependencyInjection;
@@ -12,31 +8,24 @@ namespace MediatR.DependencyInjection;
 public static class MediatorServiceCollectionExtensions
 {
     /// <summary>
-    /// Adds MediatR services and registers all request handlers found in the specified assemblies.
+    /// Adds MediatR services, registers request handlers from configured assemblies, and adds configured pipeline behaviors.
     /// </summary>
     /// <param name="services">The service collection to register services into.</param>
-    /// <param name="assemblies">The assemblies to scan for request handlers.</param>
+    /// <param name="configure">Configures handler assemblies and pipeline behaviors.</param>
     /// <returns>The same service collection instance so additional registrations can be chained.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> is <see langword="null"/>.</exception>
-    /// <exception cref="ArgumentException">Thrown when no assemblies are specified.</exception>
-    public static IServiceCollection AddMediator(this IServiceCollection services, params Assembly[] assemblies)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> or <paramref name="configure"/> is <see langword="null"/>.</exception>
+    public static IServiceCollection AddMediatR(
+        this IServiceCollection services,
+        Action<MediatRServiceConfiguration> configure)
     {
         ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configure);
 
-        if (assemblies is null || assemblies.Length == 0)
-        {
-            throw new ArgumentException("At least one assembly must be specified.", nameof(assemblies));
-        }
-
-        var executorCache = new RequestExecutorCache();
-        services.AddSingleton(executorCache);
-        services.AddScoped<IMediator>(serviceProvider => new Mediator(serviceProvider, executorCache));
-
-        foreach (var assembly in assemblies.Distinct())
-        {
-            services.RegisterHandlers(assembly, executorCache);
-        }
+        var configuration = new MediatRServiceConfiguration(services);
+        configure(configuration);
+        configuration.RegisterServices();
 
         return services;
     }
+
 }

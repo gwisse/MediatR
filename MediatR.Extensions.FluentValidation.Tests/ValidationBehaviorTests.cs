@@ -15,7 +15,9 @@ public sealed class ValidationBehaviorTests
         var tracker = new ValidationHandlerTracker();
         var services = new ServiceCollection();
         services.AddSingleton(tracker);
-        services.AddMediator(typeof(ValidationBehaviorTests).Assembly);
+        services.AddMediatR(configuration =>
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(ValidationBehaviorTests).Assembly));
         services.AddValidationBehavior();
         services.AddTransient<IValidator<ValidatedRequest>, ValidatedRequestValidator>();
 
@@ -34,7 +36,9 @@ public sealed class ValidationBehaviorTests
         var tracker = new ValidationHandlerTracker();
         var services = new ServiceCollection();
         services.AddSingleton(tracker);
-        services.AddMediator(typeof(ValidationBehaviorTests).Assembly);
+        services.AddMediatR(configuration =>
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(ValidationBehaviorTests).Assembly));
         services.AddValidationBehavior();
         services.AddTransient<IValidator<ValidatedRequest>, ValidatedRequestValidator>();
 

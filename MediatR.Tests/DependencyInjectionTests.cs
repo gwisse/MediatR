@@ -9,14 +9,13 @@ namespace MediatR.Tests;
 public class DependencyInjectionTests
 {
     [Fact]
-    public void AddMediator_RegistersMediator()
+    public void AddMediatR_RegistersMediator()
     {
         // Arrange
         var services = new ServiceCollection();
 
         // Act
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         // Assert
         var descriptor = services
@@ -30,14 +29,13 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddMediator_RegistersMediatorAsScoped()
+    public void AddMediatR_RegistersMediatorAsScoped()
     {
         // Arrange
         var services = new ServiceCollection();
 
         // Act
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         // Assert
         var descriptor = services.Single(x =>
@@ -48,13 +46,12 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_RegistersExecutorCacheAsSingleton()
+    public async Task AddMediatR_RegistersExecutorCacheAsSingleton()
     {
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         await using var provider =
             services.BuildServiceProvider();
@@ -68,13 +65,12 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_RegistersRequestHandler_HandlerCanBeResolved()
+    public async Task AddMediatR_RegistersRequestHandler_HandlerCanBeResolved()
     {
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         await using var provider =
             services.BuildServiceProvider();
@@ -89,14 +85,13 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddMediator_RegistersRequestHandlerAsScoped()
+    public void AddMediatR_RegistersRequestHandlerAsScoped()
     {
         // Arrange
         var services = new ServiceCollection();
 
         // Act
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         // Assert
         var descriptor = services.Single(x =>
@@ -108,13 +103,12 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_DoesNotRegisterPipelineBehaviorsFromAssembly()
+    public async Task AddMediatR_DoesNotRegisterPipelineBehaviorsFromAssembly()
     {
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
 
         await using var provider =
             services.BuildServiceProvider();
@@ -128,13 +122,12 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_ResolvesPipelineBehaviorRegisteredWithDependencyInjection()
+    public async Task AddMediatR_ResolvesPipelineBehaviorRegisteredWithDependencyInjection()
     {
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddMediator(
-            typeof(DependencyInjectionTests).Assembly);
+        RegisterTestAssembly(services);
         services.AddTransient(
             typeof(IPipelineBehavior<,>),
             typeof(TestBehavior<,>));
@@ -153,30 +146,85 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddMediator_WithoutAssemblies_ThrowsArgumentException()
+    public async Task AddMediatR_RegistersBehaviorFromConfiguration()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(DependencyInjectionTests).Assembly);
+            configuration.AddBehavior(typeof(TestClosedBehavior), ServiceLifetime.Scoped);
+        });
+
+        await using var provider =
+            services.BuildServiceProvider();
+
+        // Act
+        var behavior = provider.GetRequiredService<
+            IPipelineBehavior<TestRequest, string>>();
+
+        // Assert
+        behavior.Should().BeOfType<TestClosedBehavior>();
+        services.Single(x =>
+                x.ServiceType == typeof(IPipelineBehavior<TestRequest, string>))
+            .Lifetime.Should().Be(ServiceLifetime.Scoped);
+    }
+
+    [Fact]
+    public async Task AddMediatR_RegistersOpenGenericBehaviorFromConfiguration()
+    {
+        // Arrange
+        var services = new ServiceCollection();
+
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(DependencyInjectionTests).Assembly);
+            configuration.AddBehavior(typeof(TestBehavior<,>));
+        });
+
+        await using var provider =
+            services.BuildServiceProvider();
+
+        // Act
+        var behavior = provider.GetRequiredService<
+            IPipelineBehavior<TestRequest, string>>();
+
+        // Assert
+        behavior.Should().BeOfType<TestBehavior<TestRequest, string>>();
+        services.Single(x =>
+                x.ServiceType == typeof(IPipelineBehavior<,>))
+            .Lifetime.Should().Be(ServiceLifetime.Transient);
+    }
+
+    [Fact]
+    public void AddMediatR_WithoutHandlerAssembly_ThrowsInvalidOperationException()
     {
         // Arrange
         var services = new ServiceCollection();
 
         // Act
-        var act = () => services.AddMediator();
+        var act = () => services.AddMediatR(_ => { });
 
         // Assert
         act.Should()
-            .Throw<ArgumentException>()
-            .WithParameterName("assemblies");
+            .Throw<InvalidOperationException>()
+            .WithMessage("*RegisterRequestHandlersFromAssembly*");
     }
 
     [Fact]
-    public void AddMediator_WithNullServiceCollection_ThrowsArgumentNullException()
+    public void AddMediatR_WithNullServiceCollection_ThrowsArgumentNullException()
     {
         // Arrange
         IServiceCollection services = null!;
 
         // Act
         var act = () =>
-            services.AddMediator(
-                typeof(DependencyInjectionTests).Assembly);
+            services.AddMediatR(configuration =>
+                configuration.RegisterRequestHandlersFromAssembly(
+                    typeof(DependencyInjectionTests).Assembly));
 
         // Assert
         act.Should()
@@ -184,7 +232,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediator_WithDuplicateAssembly_DoesNotDuplicateHandlers()
+    public async Task AddMediatR_WithDuplicateAssembly_DoesNotDuplicateHandlers()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -193,10 +241,12 @@ public class DependencyInjectionTests
             typeof(DependencyInjectionTests).Assembly;
 
         // Act
-        services.AddMediator(
-            assembly,
-            assembly,
-            assembly);
+        services.AddMediatR(configuration =>
+        {
+            configuration.RegisterRequestHandlersFromAssembly(assembly);
+            configuration.RegisterRequestHandlersFromAssembly(assembly);
+            configuration.RegisterRequestHandlersFromAssembly(assembly);
+        });
 
         await using var provider =
             services.BuildServiceProvider();
@@ -211,6 +261,13 @@ public class DependencyInjectionTests
     // ========================================================
     // Test types
     // ========================================================
+
+    private static void RegisterTestAssembly(IServiceCollection services)
+    {
+        services.AddMediatR(configuration =>
+            configuration.RegisterRequestHandlersFromAssembly(
+                typeof(DependencyInjectionTests).Assembly));
+    }
 
     public sealed record TestRequest
         : IRequest<string>;
@@ -233,6 +290,18 @@ public class DependencyInjectionTests
         public Task<TResponse> Handle(
             TRequest request,
             RequestHandlerDelegate<TResponse> next,
+            CancellationToken cancellationToken)
+        {
+            return next();
+        }
+    }
+
+    public sealed class TestClosedBehavior
+        : IPipelineBehavior<TestRequest, string>
+    {
+        public Task<string> Handle(
+            TestRequest request,
+            RequestHandlerDelegate<string> next,
             CancellationToken cancellationToken)
         {
             return next();

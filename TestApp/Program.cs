@@ -5,9 +5,12 @@ using Microsoft.Extensions.DependencyInjection;
 using TestApp;
 
 var services = new ServiceCollection();
-services.AddMediator(typeof(Program).Assembly);
+services.AddMediatR(cfg =>
+{
+    cfg.RegisterRequestHandlersFromAssembly(typeof(Program).Assembly);
+    cfg.AddBehavior(typeof(LoggingBehavior<,>));
+});
 services.AddMediatRFluentValidation(typeof(Program).Assembly);
-services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
 await using var serviceProvider = services.BuildServiceProvider();
 await using var scope = serviceProvider.CreateAsyncScope();

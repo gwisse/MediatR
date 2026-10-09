@@ -2,7 +2,8 @@ using MediatR.Abstractions;
 
 namespace TestApp;
 
-public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
+public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+    where TRequest : IRequest<TResponse>
 {
     public async Task<TResponse> Handle(
         TRequest request,
