@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace TestApp;
+namespace MediatR.DemoApp;
 
 public sealed class GreetingRequestValidator : AbstractValidator<GreetingRequest>
 {

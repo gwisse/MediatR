@@ -2,7 +2,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR", "MediatR\MediatR.csproj", "{8BB6A8FA-A417-4EFA-83DD-CAA26856297D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{536AD651-1455-469E-BD7B-E7CAFB8B50CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR.DemoApp", "MediatR.DemoApp\MediatR.DemoApp.csproj", "{536AD651-1455-469E-BD7B-E7CAFB8B50CB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MediatR.Tests", "MediatR.Tests\MediatR.Tests.csproj", "{8CB41B43-D041-40F9-8A4B-4613EA8BDFB4}"
 EndProject

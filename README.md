@@ -158,7 +158,7 @@ The integration package performs input validation only. Applications should hand
 | `MediatR` | Core mediator, dependency-injection registration, and request execution |
 | `MediatR.Extensions.FluentValidation` | Optional FluentValidation pipeline behavior |
 | `MediatR.Tests` | Unit and integration tests |
-| `TestApp` | Sample application |
+| `MediatR.DemoApp` | Sample application |
 
 ## Building and testing
 
