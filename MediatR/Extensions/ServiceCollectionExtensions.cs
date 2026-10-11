@@ -9,7 +9,7 @@ internal static class ServiceCollectionExtensions
 {
     extension(IServiceCollection services)
     {
-        internal void RegisterHandlers(Assembly assembly, RequestExecutorCache executorCache)
+        internal void RegisterHandlers(Assembly assembly)
         {
             foreach (var type in assembly.GetLoadableTypes())
             {
@@ -21,9 +21,6 @@ internal static class ServiceCollectionExtensions
                 foreach (var handlerInterface in type.GetInterfaces().Where(handler => handler.IsRequestHandler()))
                 {
                     services.AddScoped(handlerInterface, type);
-
-                    var genericArguments = handlerInterface.GetGenericArguments();
-                    executorCache.Prebuild(genericArguments[0], genericArguments[1]);
                 }
             }
         }
