@@ -27,6 +27,27 @@ internal static class ServiceCollectionExtensions
                 }
             }
         }
+
+        internal void ValidateNoDuplicateHandlerRegistrations()
+        {
+            var duplicateRegistration = services
+                .Where(descriptor => IsRequestHandlerInterface(descriptor.ServiceType))
+                .GroupBy(descriptor => descriptor.ServiceType)
+                .FirstOrDefault(group => group.Count() > 1);
+
+            if (duplicateRegistration is null)
+            {
+                return;
+            }
+
+            var handlerTypes = string.Join(
+                ", ",
+                duplicateRegistration.Select(descriptor =>
+                    descriptor.ImplementationType?.FullName ?? "factory or instance"));
+
+            throw new InvalidOperationException(
+                $"Multiple handlers are registered for '{duplicateRegistration.Key}': {handlerTypes}.");
+        }
     }
 
     private static bool IsRequestHandlerInterface(Type type)
@@ -34,7 +55,7 @@ internal static class ServiceCollectionExtensions
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
     }
 
-    private static IEnumerable<Type> GetLoadableTypes(Assembly assembly)
+    private static Type[] GetLoadableTypes(Assembly assembly)
     {
         try
         {

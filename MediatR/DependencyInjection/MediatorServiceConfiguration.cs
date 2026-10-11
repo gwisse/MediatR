@@ -13,6 +13,7 @@ public sealed class MediatorServiceConfiguration
 {
     private readonly IServiceCollection _services;
     private readonly List<Assembly> _assemblies = [];
+    private readonly List<ServiceDescriptor> _behaviors = [];
 
     internal MediatorServiceConfiguration(IServiceCollection services)
     {
@@ -35,7 +36,7 @@ public sealed class MediatorServiceConfiguration
     }
 
     /// <summary>
-    /// Registers a pipeline behavior implementation with the specified lifetime.
+    /// Adds a pipeline behavior implementation to register with the specified lifetime.
     /// Use <c>typeof(Behavior&lt;,&gt;)</c> for open generic behavior types.
     /// </summary>
     /// <param name="behaviorType">The pipeline behavior implementation type.</param>
@@ -87,7 +88,7 @@ public sealed class MediatorServiceConfiguration
                 registrationType = serviceType.GetGenericTypeDefinition();
             }
 
-            _services.Add(new ServiceDescriptor(registrationType, behaviorType, lifetime));
+            _behaviors.Add(new ServiceDescriptor(registrationType, behaviorType, lifetime));
         }
     }
 
@@ -107,33 +108,11 @@ public sealed class MediatorServiceConfiguration
             _services.RegisterHandlers(assembly, executorCache);
         }
 
-        ValidateNoDuplicateHandlerRegistrations();
-    }
-
-    private void ValidateNoDuplicateHandlerRegistrations()
-    {
-        var duplicateRegistration = _services
-            .Where(descriptor => IsRequestHandlerService(descriptor.ServiceType))
-            .GroupBy(descriptor => descriptor.ServiceType)
-            .FirstOrDefault(group => group.Count() > 1);
-
-        if (duplicateRegistration is null)
+        foreach (var behavior in _behaviors)
         {
-            return;
+            _services.Add(behavior);
         }
 
-        var handlerTypes = string.Join(
-            ", ",
-            duplicateRegistration.Select(descriptor =>
-                descriptor.ImplementationType?.FullName ?? "factory or instance"));
-
-        throw new InvalidOperationException(
-            $"Multiple handlers are registered for '{duplicateRegistration.Key}': {handlerTypes}.");
-    }
-
-    private static bool IsRequestHandlerService(Type serviceType)
-    {
-        return serviceType.IsGenericType &&
-            serviceType.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
+        _services.ValidateNoDuplicateHandlerRegistrations();
     }
 }

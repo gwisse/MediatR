@@ -151,12 +151,16 @@ public class DependencyInjectionTests
     {
         // Arrange
         var services = new ServiceCollection();
+        var behaviorWasRegisteredDuringConfiguration = false;
 
         services.AddMediatR(configuration =>
         {
             configuration.RegisterRequestHandlersFromAssembly(
                 typeof(DependencyInjectionTests).Assembly);
             configuration.AddBehavior(typeof(TestClosedBehavior), ServiceLifetime.Scoped);
+            behaviorWasRegisteredDuringConfiguration = services.Any(
+                descriptor => descriptor.ServiceType ==
+                    typeof(IPipelineBehavior<TestRequest, string>));
         });
 
         await using var provider =
@@ -167,6 +171,7 @@ public class DependencyInjectionTests
             IPipelineBehavior<TestRequest, string>>();
 
         // Assert
+        behaviorWasRegisteredDuringConfiguration.Should().BeFalse();
         behavior.Should().BeOfType<TestClosedBehavior>();
         services.Single(x =>
                 x.ServiceType == typeof(IPipelineBehavior<TestRequest, string>))
