@@ -28,21 +28,6 @@ internal sealed class RequestExecutor<TRequest, TResponse> : IRequestExecutor wh
 
         RequestHandlerDelegate<TResponse> next = () => _handler.Handle(typedRequest, cancellationToken);
 
-        // Build the pipeline from the inside out.
-        //
-        // DI order:
-        //
-        //   Logging
-        //   Validation
-        //   Transaction
-        //
-        // Execution:
-        //
-        //   Logging
-        //      -> Validation
-        //          -> Transaction
-        //              -> Handler
-
         foreach (var behavior in _behaviors.Reverse())
         {
             var currentNext = next;

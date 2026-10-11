@@ -1,6 +1,6 @@
 using MediatR.Abstractions;
 
-namespace TestApp;
+namespace MediatR.DemoApp;
 
 public sealed class GreetingRequestHandler : IRequestHandler<GreetingRequest, string>
 {

@@ -1,5 +1,5 @@
 using MediatR.Abstractions;
 
-namespace TestApp;
+namespace MediatR.DemoApp;
 
 public sealed record GreetingRequest(string Name) : IRequest<string>;

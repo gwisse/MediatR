@@ -2,7 +2,7 @@ using MediatR.Abstractions;
 using MediatR.DependencyInjection;
 using MediatR.Extensions.FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
-using TestApp;
+using MediatR.DemoApp;
 
 var services = new ServiceCollection();
 services.AddMediatR(cfg =>

@@ -1,6 +1,6 @@
 using MediatR.Abstractions;
 
-namespace TestApp;
+namespace MediatR.DemoApp;
 
 public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
