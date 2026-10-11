@@ -56,15 +56,12 @@ public sealed class MediatorServiceConfiguration
         }
 
         var serviceTypes = behaviorType.GetInterfaces()
-            .Where(type => type.IsGenericType &&
-                type.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>))
+            .Where(type => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IPipelineBehavior<,>))
             .ToArray();
 
         if (serviceTypes.Length == 0)
         {
-            throw new ArgumentException(
-                $"Type '{behaviorType}' does not implement {typeof(IPipelineBehavior<,>)}.",
-                nameof(behaviorType));
+            throw new ArgumentException($"Type '{behaviorType}' does not implement {typeof(IPipelineBehavior<,>)}.", nameof(behaviorType));
         }
 
         foreach (var serviceType in serviceTypes)
@@ -100,7 +97,6 @@ public sealed class MediatorServiceConfiguration
         }
 
         var executorCache = new RequestExecutorCache();
-        _services.AddSingleton(executorCache);
         _services.AddScoped<IMediator>(serviceProvider => new Mediator(serviceProvider, executorCache));
 
         foreach (var assembly in _assemblies.Distinct())

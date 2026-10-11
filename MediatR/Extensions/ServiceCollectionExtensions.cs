@@ -11,14 +11,14 @@ internal static class ServiceCollectionExtensions
     {
         internal void RegisterHandlers(Assembly assembly, RequestExecutorCache executorCache)
         {
-            foreach (var type in GetLoadableTypes(assembly))
+            foreach (var type in assembly.GetLoadableTypes())
             {
                 if (type.IsAbstract || type.IsInterface)
                 {
                     continue;
                 }
 
-                foreach (var handlerInterface in type.GetInterfaces().Where(IsRequestHandlerInterface))
+                foreach (var handlerInterface in type.GetInterfaces().Where(handler => handler.IsRequestHandler()))
                 {
                     services.AddScoped(handlerInterface, type);
 
@@ -31,7 +31,7 @@ internal static class ServiceCollectionExtensions
         internal void ValidateNoDuplicateHandlerRegistrations()
         {
             var duplicateRegistration = services
-                .Where(descriptor => IsRequestHandlerInterface(descriptor.ServiceType))
+                .Where(descriptor => descriptor.ServiceType.IsRequestHandler())
                 .GroupBy(descriptor => descriptor.ServiceType)
                 .FirstOrDefault(group => group.Count() > 1);
 
@@ -50,12 +50,12 @@ internal static class ServiceCollectionExtensions
         }
     }
 
-    private static bool IsRequestHandlerInterface(Type type)
+    internal static bool IsRequestHandler(this Type type)
     {
         return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
     }
 
-    private static Type[] GetLoadableTypes(Assembly assembly)
+    internal static Type[] GetLoadableTypes(this Assembly assembly)
     {
         try
         {
