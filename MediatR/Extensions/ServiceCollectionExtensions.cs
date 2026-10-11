@@ -49,27 +49,4 @@ internal static class ServiceCollectionExtensions
                 $"Multiple handlers are registered for '{duplicateRegistration.Key}': {handlerTypes}.");
         }
     }
-
-    internal static bool IsRequestHandler(this Type type)
-    {
-        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IRequestHandler<,>);
-    }
-
-    internal static Type[] GetLoadableTypes(this Assembly assembly)
-    {
-        try
-        {
-            return assembly.GetTypes();
-        }
-        catch (ReflectionTypeLoadException ex)
-        {
-            var loaderExceptions = ex.LoaderExceptions
-                .Where(static exception => exception is not null)
-                .Cast<Exception>();
-
-            throw new InvalidOperationException(
-                $"Could not load all types from assembly '{assembly.FullName}'.",
-                new AggregateException(loaderExceptions));
-        }
-    }
 }
