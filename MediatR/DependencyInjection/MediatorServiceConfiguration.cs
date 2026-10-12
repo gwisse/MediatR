@@ -96,8 +96,8 @@ public sealed class MediatorServiceConfiguration
             throw new InvalidOperationException("At least one assembly must be specified with RegisterRequestHandlersFromAssembly.");
         }
 
-        _services.AddSingleton<RequestExecutorCache>();
-        _services.AddScoped<IMediator>(serviceProvider => new Mediator(serviceProvider, serviceProvider.GetRequiredService<RequestExecutorCache>()));
+        _services.AddSingleton<RequestExecutorFactoryCache>();
+        _services.AddScoped<IMediator>(serviceProvider => new Mediator(serviceProvider, serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
 
         foreach (var assembly in _assemblies.Distinct())
         {

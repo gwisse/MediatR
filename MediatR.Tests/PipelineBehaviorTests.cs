@@ -161,11 +161,11 @@ public class PipelineBehaviorTests
     {
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
 
         return services;
     }

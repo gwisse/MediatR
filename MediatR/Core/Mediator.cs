@@ -8,17 +8,17 @@ namespace MediatR.Core;
 public sealed class Mediator : IMediator
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly RequestExecutorCache _executorCache;
+    private readonly RequestExecutorFactoryCache _executorFactoryCache;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Mediator"/> class.
     /// </summary>
     /// <param name="serviceProvider">The service provider used to resolve request handlers and behaviors.</param>
-    /// <param name="executorCache">The cache of request executors.</param>
-    internal Mediator(IServiceProvider serviceProvider, RequestExecutorCache executorCache)
+    /// <param name="executorFactoryCache">The cache of request executor factories.</param>
+    internal Mediator(IServiceProvider serviceProvider, RequestExecutorFactoryCache executorFactoryCache)
     {
         _serviceProvider = serviceProvider;
-        _executorCache = executorCache;
+        _executorFactoryCache = executorFactoryCache;
     }
 
     /// <inheritdoc />
@@ -26,7 +26,7 @@ public sealed class Mediator : IMediator
     {
         ArgumentNullException.ThrowIfNull(request);
 
-        var executor = _executorCache.GetOrCreate(_serviceProvider, request.GetType(), typeof(TResponse));
+        var executor = _executorFactoryCache.CreateExecutor(_serviceProvider, request.GetType(), typeof(TResponse));
         var result = await executor.Execute(request, cancellationToken);
 
         return (TResponse)result!;

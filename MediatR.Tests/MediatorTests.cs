@@ -14,11 +14,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
         services.AddScoped<
             IRequestHandler<TestRequest, string>,
             TestRequestHandler>();
@@ -46,11 +46,11 @@ public class MediatorTests
 
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
         services.AddSingleton(tracker);
 
         services.AddScoped<
@@ -77,11 +77,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
 
         await using var provider =
             services.BuildServiceProvider();
@@ -128,11 +128,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
 
         await using var provider =
             services.BuildServiceProvider();
@@ -154,11 +154,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
         services.AddScoped<
             IRequestHandler<CancellationRequest, CancellationToken>,
             CancellationRequestHandler>();
@@ -190,11 +190,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
         services.AddScoped<
             IRequestHandler<FailingRequest, string>,
             FailingRequestHandler>();
@@ -223,11 +223,11 @@ public class MediatorTests
 
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
         services.AddSingleton(tracker);
 
         services.AddScoped<
@@ -256,11 +256,11 @@ public class MediatorTests
         // Arrange
         var services = new ServiceCollection();
 
-        services.AddSingleton(new RequestExecutorCache());
+        services.AddSingleton(new RequestExecutorFactoryCache());
         services.AddScoped<IMediator>(serviceProvider =>
             new Mediator(
                 serviceProvider,
-                serviceProvider.GetRequiredService<RequestExecutorCache>()));
+                serviceProvider.GetRequiredService<RequestExecutorFactoryCache>()));
 
         services.AddScoped<
             IRequestHandler<TestRequest, string>,

@@ -47,7 +47,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_WithHandlerAssembly_RegistersExecutorCacheAsSingleton()
+    public async Task AddMediatR_WithHandlerAssembly_RegistersExecutorFactoryCacheAsSingleton()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -58,8 +58,8 @@ public class DependencyInjectionTests
             services.BuildServiceProvider();
 
         // Act
-        var first = provider.GetRequiredService<RequestExecutorCache>();
-        var second = provider.GetRequiredService<RequestExecutorCache>();
+        var first = provider.GetRequiredService<RequestExecutorFactoryCache>();
+        var second = provider.GetRequiredService<RequestExecutorFactoryCache>();
 
         // Assert
         second.Should().BeSameAs(first);
