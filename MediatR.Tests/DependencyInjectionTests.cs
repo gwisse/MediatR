@@ -10,7 +10,7 @@ namespace MediatR.Tests;
 public class DependencyInjectionTests
 {
     [Fact]
-    public void AddMediatR_RegistersMediator()
+    public void AddMediatR_WithHandlerAssembly_RegistersMediator()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -30,7 +30,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddMediatR_RegistersMediatorAsScoped()
+    public void AddMediatR_WithHandlerAssembly_RegistersMediatorAsScoped()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -47,7 +47,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_RegistersExecutorCacheAsSingleton()
+    public async Task AddMediatR_WithHandlerAssembly_RegistersExecutorCacheAsSingleton()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -86,7 +86,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public void AddMediatR_RegistersRequestHandlerAsScoped()
+    public void AddMediatR_WithHandlerAssembly_RegistersRequestHandlerAsScoped()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -104,7 +104,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_DoesNotRegisterPipelineBehaviorsFromAssembly()
+    public async Task AddMediatR_WithHandlerAssembly_DoesNotRegisterPipelineBehaviors()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -123,7 +123,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_ResolvesPipelineBehaviorRegisteredWithDependencyInjection()
+    public async Task AddMediatR_WithDependencyInjectionRegisteredBehavior_ResolvesPipelineBehavior()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -136,6 +136,7 @@ public class DependencyInjectionTests
         await using var provider =
             services.BuildServiceProvider();
 
+        // Act
         var behaviors = provider.GetServices<
             IPipelineBehavior<TestRequest, string>>();
 
@@ -147,7 +148,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_RegistersBehaviorFromConfiguration()
+    public async Task AddMediatR_WithConfiguredClosedBehavior_RegistersBehavior()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -179,7 +180,7 @@ public class DependencyInjectionTests
     }
 
     [Fact]
-    public async Task AddMediatR_RegistersOpenGenericBehaviorFromConfiguration()
+    public async Task AddMediatR_WithConfiguredOpenGenericBehavior_RegistersBehavior()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -240,14 +241,17 @@ public class DependencyInjectionTests
     [Fact]
     public void AddMediatR_WithPartiallyLoadableAssembly_FailsFastWithLoaderErrors()
     {
+        // Arrange
         var services = new ServiceCollection();
         var loaderException = new TypeLoadException("Missing dependency");
         var assembly = new PartiallyLoadableAssembly(
             new ReflectionTypeLoadException([], [loaderException]));
 
+        // Act
         var act = () => services.AddMediatR(configuration =>
             configuration.RegisterRequestHandlersFromAssembly(assembly));
 
+        // Assert
         var exception = act.Should()
             .Throw<InvalidOperationException>()
             .WithMessage("*PartiallyLoadableAssembly*")
@@ -290,7 +294,7 @@ public class DependencyInjectionTests
 
     // ========================================================
     // Test types
-    // ========================================================
+    // ========================================================Test
 
     private static void RegisterTestAssembly(IServiceCollection services)
     {

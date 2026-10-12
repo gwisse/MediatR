@@ -2,7 +2,6 @@ using FluentAssertions;
 using FluentValidation;
 using MediatR.Abstractions;
 using MediatR.DependencyInjection;
-using MediatR.Extensions.FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace MediatR.Extensions.FluentValidation.Tests;
@@ -10,8 +9,9 @@ namespace MediatR.Extensions.FluentValidation.Tests;
 public sealed class ValidationBehaviorTests
 {
     [Fact]
-    public void AddFluentValidation_RegistersBehaviorAtConfigurationPosition()
+    public void AddFluentValidation_WithConfiguredBehavior_RegistersAtConfigurationPosition()
     {
+        // Arrange
         var services = new ServiceCollection();
 
         services.AddMediatR(configuration =>
@@ -24,11 +24,13 @@ public sealed class ValidationBehaviorTests
             configuration.AddBehavior(typeof(AfterValidationBehavior<,>));
         });
 
+        // Act
         var behaviors = services
             .Where(descriptor => descriptor.ServiceType == typeof(IPipelineBehavior<,>))
             .Select(descriptor => descriptor.ImplementationType)
             .ToArray();
 
+        // Assert
         behaviors.Should().Equal(
             typeof(BeforeValidationBehavior<,>),
             typeof(ValidationBehavior<,>),
@@ -38,6 +40,7 @@ public sealed class ValidationBehaviorTests
     [Fact]
     public async Task Send_InvalidRequest_ThrowsValidationExceptionWithoutCallingHandler()
     {
+        // Arrange
         var tracker = new ValidationHandlerTracker();
         var services = new ServiceCollection();
         services.AddSingleton(tracker);
@@ -53,15 +56,19 @@ public sealed class ValidationBehaviorTests
         await using var provider = services.BuildServiceProvider();
         var mediator = provider.GetRequiredService<IMediator>();
 
+        // Act
         var act = () => mediator.Send(new ValidatedRequest(string.Empty));
 
+        // Assert
         await act.Should().ThrowAsync<ValidationException>();
+
         tracker.InvocationCount.Should().Be(0);
     }
 
     [Fact]
     public async Task Send_ValidRequest_InvokesHandler()
     {
+        // Arrange
         var tracker = new ValidationHandlerTracker();
         var services = new ServiceCollection();
         services.AddSingleton(tracker);
@@ -77,15 +84,18 @@ public sealed class ValidationBehaviorTests
         await using var provider = services.BuildServiceProvider();
         var mediator = provider.GetRequiredService<IMediator>();
 
+        // Act
         var result = await mediator.Send(new ValidatedRequest("valid"));
 
+        // Assert
         result.Should().Be("VALID");
         tracker.InvocationCount.Should().Be(1);
     }
 
     [Fact]
-    public async Task Handle_RunsValidatorsInParallelWithSeparateContexts()
+    public async Task Handle_WithMultipleValidators_RunsValidatorsInParallelWithSeparateContexts()
     {
+        // Arrange
         var tracker = new ValidatorConcurrencyTracker();
         var behavior = new ValidationBehavior<ConcurrentRequest, string>(
         [
@@ -93,11 +103,13 @@ public sealed class ValidationBehaviorTests
             new SecondConcurrentValidator(tracker)
         ]);
 
+        // Act
         var response = await behavior.Handle(
             new ConcurrentRequest("valid"),
             () => Task.FromResult("handled"),
             CancellationToken.None);
 
+        // Assert
         response.Should().Be("handled");
         tracker.MaximumConcurrentValidations.Should().Be(2);
         tracker.Contexts.Should().HaveCount(2);
@@ -105,19 +117,22 @@ public sealed class ValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_AggregatesFailuresFromMultipleValidators()
+    public async Task Handle_WithMultipleFailingValidators_AggregatesFailures()
     {
+        // Arrange
         var behavior = new ValidationBehavior<ValidatedRequest, string>(
         [
             new FirstFailingValidator(),
             new SecondFailingValidator()
         ]);
 
+        // Act
         var act = () => behavior.Handle(
             new ValidatedRequest("invalid"),
             () => Task.FromResult("should not execute"),
             CancellationToken.None);
 
+        // Assert
         var exception = await act.Should().ThrowAsync<ValidationException>();
         exception.Which.Errors
             .Select(failure => failure.ErrorMessage)
@@ -126,8 +141,9 @@ public sealed class ValidationBehaviorTests
     }
 
     [Fact]
-    public async Task Handle_CancellationDuringValidation_PropagatesCancellationAndSkipsHandler()
+    public async Task Handle_WithCancelledToken_PropagatesCancellationAndSkipsHandler()
     {
+        // Arrange
         var behavior = new ValidationBehavior<ConcurrentRequest, string>(
         [
             new CancellationValidator()
@@ -136,6 +152,7 @@ public sealed class ValidationBehaviorTests
         cancellationTokenSource.Cancel();
         var handlerExecuted = false;
 
+        // Act
         var act = () => behavior.Handle(
             new ConcurrentRequest("valid"),
             () =>
@@ -145,15 +162,16 @@ public sealed class ValidationBehaviorTests
             },
             cancellationTokenSource.Token);
 
+        // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
         handlerExecuted.Should().BeFalse();
     }
 
     public sealed record ValidatedRequest(string Value) : IRequest<string>;
 
-    public sealed record ConcurrentRequest(string Value) : IRequest<string>;
+    private sealed record ConcurrentRequest(string Value) : IRequest<string>;
 
-    public sealed class BeforeValidationBehavior<TRequest, TResponse>
+    private sealed class BeforeValidationBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
@@ -163,7 +181,7 @@ public sealed class ValidationBehaviorTests
             CancellationToken cancellationToken) => next();
     }
 
-    public sealed class AfterValidationBehavior<TRequest, TResponse>
+    private sealed class AfterValidationBehavior<TRequest, TResponse>
         : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
@@ -246,7 +264,7 @@ public sealed class ValidationBehaviorTests
         public int InvocationCount { get; set; }
     }
 
-    public sealed class ValidatorConcurrencyTracker
+    private sealed class ValidatorConcurrencyTracker
     {
         private int _activeValidations;
         private int _maximumConcurrentValidations;
