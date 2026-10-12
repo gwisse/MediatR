@@ -303,10 +303,9 @@ public class DependencyInjectionTests
                 typeof(DependencyInjectionTests).Assembly));
     }
 
-    public sealed record TestRequest
-        : IRequest<string>;
+    private sealed record TestRequest : IRequest<string>;
 
-    public sealed class TestRequestHandler
+    private sealed class TestRequestHandler
         : IRequestHandler<TestRequest, string>
     {
         public Task<string> Handle(
@@ -330,7 +329,7 @@ public class DependencyInjectionTests
         }
     }
 
-    public sealed class TestClosedBehavior
+    private sealed class TestClosedBehavior
         : IPipelineBehavior<TestRequest, string>
     {
         public Task<string> Handle(
