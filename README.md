@@ -28,12 +28,16 @@ MediatR does not enforce CQRS rules by itself, but its request-and-handler model
 
 ## Installation
 
-This repository currently contains the source project rather than a published NuGet package. Add a project reference to `MediatR.csproj`:
+Install the MediatR package in the application that dispatches requests:
 
-```xml
-<ItemGroup>
-  <ProjectReference Include="path\to\MediatR\MediatR.csproj" />
-</ItemGroup>
+```bash
+dotnet add package MediatR
+```
+
+The `MediatR` package includes the mediator implementation and dependency-injection registration, and brings in `MediatR.Abstractions` as a dependency. Projects that only define or test request and handler contracts can reference `MediatR.Abstractions` directly:
+
+```bash
+dotnet add package MediatR.Abstractions
 ```
 
 ## Dependency injection
@@ -122,7 +126,13 @@ services.AddMediatR(cfg =>
 
 ## FluentValidation integration
 
-Validation is provided as an optional integration package so applications that do not use FluentValidation do not take a dependency on it. Add the `MediatR.Extensions.FluentValidation` package alongside `MediatR`, then register the integration and validators:
+Validation is provided as an optional integration package, so applications that do not use FluentValidation do not need to install it. For FluentValidation support, install the integration package alongside `MediatR`:
+
+```bash
+dotnet add package MediatR.Extensions.FluentValidation
+```
+
+Then register the integration and validators:
 
 ```csharp
 using MediatR.Extensions.FluentValidation;
@@ -130,7 +140,6 @@ using MediatR.Extensions.FluentValidation;
 services.AddMediatR(cfg =>
 {
     cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
-    cfg.AddBehavior(typeof(LoggingBehavior<,>));
     cfg.AddFluentValidationBehaviour(typeof(CreateOrderValidator).Assembly);
 });
 ```
@@ -143,8 +152,7 @@ public sealed class CreateOrderValidator
 {
     public CreateOrderValidator()
     {
-        RuleFor(request => request.OrderNumber)
-            .NotEmpty();
+        RuleFor(request => request.OrderNumber).NotEmpty();
     }
 }
 ```
