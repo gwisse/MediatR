@@ -1,0 +1,50 @@
+name: Create NuGet packages
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Test solution
+        run: dotnet test MediatR.sln --configuration Release
+
+      - name: Pack abstractions
+        run: dotnet pack MediatR.Abstractions\MediatR.Abstractions.csproj --configuration Release --no-restore --output artifacts
+
+      - name: Pack MediatR
+        run: dotnet pack MediatR\MediatR.csproj --configuration Release --no-restore --output artifacts
+
+      - name: Pack FluentValidation integration
+        run: dotnet pack MediatR.Extensions.FluentValidation\MediatR.Extensions.FluentValidation.csproj --configuration Release --no-restore --output artifacts
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+          if-no-files-found: error
+
+      - name: Push NuGet packages to ProGet
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          PROGET_FEED_URL: ${{ vars.PROGET_FEED_URL }}
+          PROGET_API_KEY: ${{ secrets.PROGET_API_KEY }}
+        run: dotnet nuget push "artifacts/*.nupkg" --source "$env:PROGET_FEED_URL" --api-key "$env:PROGET_API_KEY" --skip-duplicate
