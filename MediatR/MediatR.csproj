@@ -7,7 +7,6 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IsPackable>true</IsPackable>
         <PackageId>MediatR</PackageId>
-        <Authors>Geraldo</Authors>
         <Description>In-process request mediator with handlers and pipeline behaviors for .NET.</Description>
         <PackageTags>mediator;request;handler;pipeline;CQRS</PackageTags>
         <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -19,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\README.md" Pack="true" PackagePath="\" />
+      <None Include="..\README.md" Pack="true" PackagePath="\" Link="README.md" />
       <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
         <_Parameter1>MediatR.Tests</_Parameter1>
       </AssemblyAttribute>

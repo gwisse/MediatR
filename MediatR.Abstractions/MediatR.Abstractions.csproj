@@ -6,11 +6,11 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <IsPackable>true</IsPackable>
         <PackageId>MediatR.Abstractions</PackageId>
-        <Authors>Geraldo</Authors>
         <Description>Contracts for MediatR requests, handlers, pipeline behaviors, and mediator dispatching.</Description>
         <PackageTags>mediator;abstractions;request;handler;pipeline;CQRS</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
     </PropertyGroup>
     <ItemGroup>
-        <None Include="..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\README.md" Pack="true" PackagePath="\" Link="README.md" />
     </ItemGroup>
 </Project>

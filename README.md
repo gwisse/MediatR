@@ -23,53 +23,82 @@ MediatR does not enforce CQRS rules by itself, but its request-and-handler model
 
 ## Requirements
 
-- .NET 10
-- `Microsoft.Extensions.DependencyInjection`
+- .NET 10 SDK to build this repository
+- .NET 10 runtime to run applications using the packages
 
 ## Installation
 
-Install the MediatR package in the application that dispatches requests:
+Packages are distributed through the project's ProGet NuGet feed. Configure the feed using the v3 URL shown in ProGet (replace the example URL with your feed URL):
 
 ```bash
-dotnet add package MediatR
+dotnet nuget add source "https://proget.example/nuget/your-feed/v3/index.json" --name ProGet
 ```
 
-The `MediatR` package includes the mediator implementation and dependency-injection registration, and brings in `MediatR.Abstractions` as a dependency. Projects that only define or test request and handler contracts can reference `MediatR.Abstractions` directly:
+For an authenticated feed, configure credentials using your organization's approved secret-management approach; do not commit credentials to source control.
+
+Applications that dispatch requests install `MediatR`:
 
 ```bash
-dotnet add package MediatR.Abstractions
+dotnet add package MediatR --source ProGet
+```
+
+The `MediatR` package depends on `MediatR.Abstractions`. Projects that only declare requests, handlers, or test those contracts can install just the abstractions package:
+
+```bash
+dotnet add package MediatR.Abstractions --source ProGet
+```
+
+FluentValidation is optional. Install the integration package only when needed:
+
+```bash
+dotnet add package MediatR.Extensions.FluentValidation --source ProGet
 ```
 
 ## Dependency injection
 
-Register MediatR with the dependency-injection container and scan the assembly that contains your requests and handlers:
+In an ASP.NET Core application, register MediatR on the application's service collection and scan the assembly containing your handlers:
 
 ```csharp
 using MediatR.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection;
 
-var services = new ServiceCollection();
-services.AddMediatR(cfg =>
-{
-    cfg.RegisterRequestHandlersFromAssembly(typeof(CreateOrderHandler).Assembly);
-});
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddMediatR(configuration =>
+    configuration.RegisterRequestHandlersFromAssembly(typeof(GetGreetingHandler).Assembly));
+
+var app = builder.Build();
+app.Run();
 ```
 
 ## Usage
 
-Inject `IMediator` into the class that needs to send requests:
+Inject `IMediator` into the application service, controller, or endpoint that sends requests. For example, an application service can use constructor injection:
 
 ```csharp
 using MediatR.Abstractions;
 
-public sealed class OrderService(IMediator mediator)
+public sealed class GreetingService(IMediator mediator)
 {
-    public Task<Guid> CreateOrder(string orderNumber, CancellationToken cancellationToken)
-    {
-        return mediator.Send( new CreateOrderRequest(orderNumber), cancellationToken);
-    }
+    public Task<string> GetGreeting(string name, CancellationToken cancellationToken) =>
+        mediator.Send(new GetGreeting(name), cancellationToken);
 }
 ```
+
+The request and handler can be defined in the assembly registered above:
+
+```csharp
+using MediatR.Abstractions;
+
+public sealed record GetGreeting(string Name) : IRequest<string>;
+
+public sealed class GetGreetingHandler : IRequestHandler<GetGreeting, string>
+{
+    public Task<string> Handle(GetGreeting request, CancellationToken cancellationToken) =>
+        Task.FromResult($"Hello, {request.Name}!");
+}
+```
+
+The application's dependency-injection container creates `GreetingService` and supplies the scoped `IMediator` instance. There is no need to build or resolve a service provider manually.
 
 ## Requests and handlers
 
@@ -114,7 +143,7 @@ public sealed class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRe
 }
 ```
 
-`AddMediatR` scans assemblies for request handlers only. Add pipeline behaviors explicitly to the configuration; behavior registrations are transient by default, and their order follows the configuration order. `RegisterRequestHandlersFromAssembly` is required because it tells MediatR where to find request handlers:
+`AddMediatR` scans only the assemblies explicitly supplied via `RegisterRequestHandlersFromAssembly`. Pipeline behaviors are registered explicitly, are transient by default, and execute in the order in which they are added:
 
 ```csharp
 services.AddMediatR(cfg =>
@@ -126,13 +155,7 @@ services.AddMediatR(cfg =>
 
 ## FluentValidation integration
 
-Validation is provided as an optional integration package, so applications that do not use FluentValidation do not need to install it. For FluentValidation support, install the integration package alongside `MediatR`:
-
-```bash
-dotnet add package MediatR.Extensions.FluentValidation
-```
-
-Then register the integration and validators:
+After installing `MediatR.Extensions.FluentValidation`, register the validation behavior in the MediatR configuration. It scans the supplied assemblies for validators:
 
 ```csharp
 using MediatR.Extensions.FluentValidation;
@@ -144,11 +167,10 @@ services.AddMediatR(cfg =>
 });
 ```
 
-`AddFluentValidation` adds the validation behavior at its position in the configuration, so you control its order relative to other behaviors. It also scans the supplied assemblies for validators. The behavior runs all registered validators before the request handler. If validation fails, it throws FluentValidation's `ValidationException` and the handler is not invoked:
+`AddFluentValidationBehaviour` adds the validation behavior at that point in the configuration, so you control its order relative to other behaviors. It runs all registered validators asynchronously before the request handler. If validation fails, it throws FluentValidation's `ValidationException` and the handler is not invoked:
 
 ```csharp
-public sealed class CreateOrderValidator
-    : AbstractValidator<CreateOrderRequest>
+public sealed class CreateOrderValidator : AbstractValidator<CreateOrderRequest>
 {
     public CreateOrderValidator()
     {
@@ -163,10 +185,12 @@ The integration package performs input validation only. Applications should hand
 
 | Project | Description |
 | --- | --- |
+| `MediatR.Abstractions` | Request, handler, mediator, and pipeline contracts |
 | `MediatR` | Core mediator, dependency-injection registration, and request execution |
 | `MediatR.Extensions.FluentValidation` | Optional FluentValidation pipeline behavior |
-| `MediatR.Tests` | Unit and integration tests |
-| `MediatR.DemoApp` | Sample application |
+| `MediatR.Tests` | Tests for the core mediator and dependency-injection registration |
+| `MediatR.Extensions.FluentValidation.Tests` | Tests for the FluentValidation integration |
+| `MediatR.DemoApp` | Console demonstration application |
 
 ## Building and testing
 
@@ -177,6 +201,3 @@ dotnet build
 dotnet test
 ```
 
-## License
-
-No license has been specified for this repository yet.
