@@ -14,7 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\MediatR.Abstractions\MediatR.Abstractions.csproj" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     </ItemGroup>
 
     <ItemGroup>

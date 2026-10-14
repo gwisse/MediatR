@@ -11,7 +11,7 @@
       <ProjectReference Include="..\MediatR\MediatR.csproj" />
       <ProjectReference Include="..\MediatR.Abstractions\MediatR.Abstractions.csproj" />
       <ProjectReference Include="..\MediatR.Extensions.FluentValidation\MediatR.Extensions.FluentValidation.csproj" />
-      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.12" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     </ItemGroup>
 
 </Project>
