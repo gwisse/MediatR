@@ -36,6 +36,8 @@ dotnet nuget add source "https://proget.example/nuget/your-feed/v3/index.json" -
 
 For an authenticated feed, configure credentials using your organization's approved secret-management approach; do not commit credentials to source control.
 
+The GitHub Actions package workflow publishes packages to ProGet on pushes to `main` and manual runs on `main`. Configure the repository variable `PROGET_FEED_URL` with the ProGet NuGet push/feed URL and the repository secret `PROGET_API_KEY` with a ProGet API key authorized to publish packages. Pull requests run tests and create downloadable package artifacts but do not publish.
+
 Applications that dispatch requests install `MediatR`:
 
 ```bash
@@ -200,4 +202,3 @@ From the repository root:
 dotnet build
 dotnet test
 ```
-
