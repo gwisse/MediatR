@@ -101,7 +101,7 @@ public class MediatorTests
     }
 
     [Fact]
-    public void AddMediatR_WithMultipleHandlers_ThrowsDuringRegistration()
+    public void AddMediatR_WithMultipleHandlerTypes_ThrowsDuringRegistration()
     {
         // Arrange
         var services = new ServiceCollection();
@@ -114,12 +114,21 @@ public class MediatorTests
             configuration.Services.AddScoped<
                 IRequestHandler<TestRequest, string>>(
                 _ => new TestRequestHandler());
+            configuration.Services.AddScoped<
+                IRequestHandler<IntRequest, int>,
+                IntRequestHandler>();
+            configuration.Services.AddScoped<
+                IRequestHandler<IntRequest, int>,
+                IntRequestHandler>();
         });
 
         // Assert
         act.Should()
             .Throw<InvalidOperationException>()
-            .WithMessage("*Multiple handlers are registered*TestRequest*");
+            .WithMessage(
+                "Multiple handlers are registered for: " +
+                "IRequestHandler<TestRequest, string>, " +
+                "IRequestHandler<IntRequest, int>.");
     }
 
     [Fact]
