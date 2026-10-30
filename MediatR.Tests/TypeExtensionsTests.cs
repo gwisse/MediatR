@@ -6,14 +6,28 @@ namespace MediatR.Tests;
 
 public class TypeExtensionsTests
 {
-    [Fact]
-    public void FormatTypeName_CSharpAliasType_ReturnsAlias()
+    [Theory]
+    [InlineData(typeof(bool), "bool")]
+    [InlineData(typeof(byte), "byte")]
+    [InlineData(typeof(char), "char")]
+    [InlineData(typeof(decimal), "decimal")]
+    [InlineData(typeof(double), "double")]
+    [InlineData(typeof(float), "float")]
+    [InlineData(typeof(int), "int")]
+    [InlineData(typeof(long), "long")]
+    [InlineData(typeof(sbyte), "sbyte")]
+    [InlineData(typeof(short), "short")]
+    [InlineData(typeof(string), "string")]
+    [InlineData(typeof(uint), "uint")]
+    [InlineData(typeof(ulong), "ulong")]
+    [InlineData(typeof(ushort), "ushort")]
+    public void FormatTypeName_CSharpAliasType_ReturnsAlias(Type type, string expectedName)
     {
         // Act
-        var typeName = typeof(string).FormatTypeName();
+        var typeName = type.FormatTypeName();
 
         // Assert
-        typeName.Should().Be("string");
+        typeName.Should().Be(expectedName);
     }
 
     [Fact]
